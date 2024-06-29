@@ -6,4 +6,10 @@ const Message = (req, res) => {
   res.status(200).json({ chatbotResponse: response });
 };
 
-module.exports = {Message}
+const MessageHistory = (req, res) => {
+  const { chatType } = req.params;
+  const history = chatbotService.MessageHistory(chatType);
+  res.status(200).json(history);
+};
+
+module.exports = {Message, MessageHistory}

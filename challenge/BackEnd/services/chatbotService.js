@@ -24,11 +24,11 @@ const getResponse = (userInput, chatType) => {
   return response;
 };
 
-const getChatHistory = (chatType) => {
+const MessageHistory = (chatType) => {
   return chatHistory[chatType] || [];
 };
 
 module.exports = {
   getResponse,
-  getChatHistory,
+  MessageHistory,
 };

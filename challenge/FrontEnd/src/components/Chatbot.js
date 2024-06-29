@@ -64,7 +64,6 @@ function Chatbot({ match }) {
   const chatType = match.params.type;
 
   useEffect(() => {
-    // Fetch chat history for the specific chat type
     const fetchChatHistory = async () => {
       try {
         const response = await axios.get(`/api/chatbot/history/${chatType}`);
