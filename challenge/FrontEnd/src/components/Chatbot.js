@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
+import { useParams, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 const PageContainer = styled.div`
   display: flex;
@@ -8,6 +11,35 @@ const PageContainer = styled.div`
   height: 100vh;
   width: 100%;
   overflow: hidden;
+  background-color: #ffd1dc;
+`;
+
+const MainContent = styled.div`
+  display: flex;
+  flex-grow: 1;
+  height: calc(100% - 60px);
+`;
+
+const ChatContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 70%;
+  height: 100%;
+  background-color: #070806;
+  position: relative;
+`;
+
+const RightColumn = styled.div`
+  width: 30%;
+  background-color: #2c2c2c;
+  color: #ffffff;
+  padding: 20px;
+  overflow-y: auto;
+`;
+
+const Divider = styled.div`
+  width: 5px;
+  background-color: #a0e00d;
 `;
 
 const MessagesContainer = styled.div`
@@ -55,26 +87,96 @@ const SendButton = styled.button`
   cursor: pointer;
   display: flex;
   align-items: center;
+  color: #a0e00d;
+  font-size: 24px;
 `;
 
-function Chatbot({ match }) {
+const PromptOptions = styled.div`
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+`;
+
+const PromptOption = styled.button`
+  background: #1a1a1a;
+  color: #ffffff;
+  padding: 10px 15px;
+  border-radius: 20px;
+  border: 1px solid #a0e00d;
+  margin-bottom: 10px;
+  cursor: pointer;
+`;
+
+const NewChatButton = styled.button`
+  background: none;
+  border: 1px solid #a0e00d;
+  color: #a0e00d;
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin: 10px 0;
+`;
+
+const SearchHistoryContainer = styled.div`
+  margin-top: 20px;
+`;
+
+const SearchHistoryTitle = styled.h2`
+  color: #a0e00d;
+  justify-content: center;
+  align-items: center;
+`;
+
+const SearchItem = styled.div`
+  background: #1a1a1a;
+  color: #ffffff;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 20px;
+  border: 1px solid #a0e00d;
+  cursor: pointer;
+`;
+
+function Chatbot() {
+  const { type } = useParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
+  const [chatHistory, setChatHistory] = useState({
+    clasico: [],
+    astrologia: [],
+    romance: [],
+    trabajo: []
+  });
+  const [showPromptOptions, setShowPromptOptions] = useState(true);
   const messagesEndRef = useRef(null);
-  const chatType = match.params.type;
+
+  const promptOptions = [
+    "hola",
+    "Hoy me siento medio mal",
+    "que me recomiendas el día de hoy",
+    "me pregunto cual es el sentido de la vida",
+    "crees que todo va a salir bien"
+  ];
 
   useEffect(() => {
     const fetchChatHistory = async () => {
       try {
-        const response = await axios.get(`/api/chatbot/history/${chatType}`);
-        setMessages(response.data);
+        const response = await axios.get(`http://localhost:5000/chatbot/history/${type}`);
+        if (response.data && Array.isArray(response.data)) {
+          const validMessages = response.data.flatMap(chat => chat.messages || []);
+          setMessages(validMessages);
+        }
+        console.log('Chat history fetched:', response.data); // Debug log
+        setShowPromptOptions(true); // Mostrar prompts para un nuevo chat
       } catch (error) {
         console.error('Error fetching chat history:', error);
       }
     };
 
     fetchChatHistory();
-  }, [chatType]);
+  }, [type]);
 
   useEffect(() => {
     scrollToBottom();
@@ -84,22 +186,25 @@ function Chatbot({ match }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const sendMessage = async (event) => {
+  const sendMessage = async (event, text) => {
     event.preventDefault();
-    if (inputText.trim()) {
+    const messageText = text || inputText;
+    if (messageText.trim()) {
       const newMessage = {
         id: messages.length + 1,
-        text: inputText,
+        text: messageText,
         user: 'user',
       };
       setMessages([...messages, newMessage]);
       setInputText('');
+      setShowPromptOptions(false);
 
       try {
-        const response = await axios.post('/api/chatbot', {
-          userInput: inputText,
-          chatType,
+        console.log('Sending message:', messageText); // Debug log
+        const response = await axios.post(`http://localhost:5000/chatbot/${type}`, {
+          userInput: messageText
         });
+        console.log('Chatbot response:', response.data); // Debug log
         const botMessage = {
           id: messages.length + 2,
           text: response.data.chatbotResponse,
@@ -112,27 +217,121 @@ function Chatbot({ match }) {
     }
   };
 
+  const startNewChat = () => {
+    const currentChat = [...messages];
+    if (currentChat.length > 0) {
+      setChatHistory(prevHistory => ({
+        ...prevHistory,
+        [type]: [
+          ...prevHistory[type],
+          {
+            id: prevHistory[type].length + 1,
+            messages: currentChat,
+            firstMessage: currentChat[0].text
+          }
+        ]
+      }));
+    }
+    setMessages([]);
+    setShowPromptOptions(true);
+  };
+
+  const handleNavigate = (newType) => {
+    // Guardar el chat actual en el historial antes de navegar
+    const currentChat = [...messages];
+    if (currentChat.length > 0) {
+      setChatHistory(prevHistory => ({
+        ...prevHistory,
+        [type]: [
+          ...prevHistory[type],
+          {
+            id: prevHistory[type].length + 1,
+            messages: currentChat,
+            firstMessage: currentChat[0].text
+          }
+        ]
+      }));
+    }
+    setMessages([]);
+    setShowPromptOptions(true);
+    navigate(`/chatbot/${newType}`);
+  };
+
+  const selectChat = (chatId) => {
+    const currentChat = [...messages];
+    if (currentChat.length > 0) {
+      setChatHistory(prevHistory => ({
+        ...prevHistory,
+        [type]: [
+          ...prevHistory[type],
+          {
+            id: prevHistory[type].length + 1,
+            messages: currentChat,
+            firstMessage: currentChat[0].text
+          }
+        ]
+      }));
+    }
+
+    const selectedChat = chatHistory[type].find(chat => chat.id === chatId);
+    if (selectedChat) {
+      setChatHistory(prevHistory => ({
+        ...prevHistory,
+        [type]: prevHistory[type].filter(chat => chat.id !== chatId)
+      }));
+      setMessages(selectedChat.messages);
+      setShowPromptOptions(false); // Ocultar prompts al recuperar el historial
+    }
+  };
+
   return (
     <PageContainer>
-      <MessagesContainer>
-        {messages.map((msg) => (
-          <Message key={msg.id} user={msg.user}>
-            {msg.text}
-          </Message>
-        ))}
-        <div ref={messagesEndRef} />
-      </MessagesContainer>
-      <InputContainer>
-        <form onSubmit={sendMessage} style={{ display: 'flex', width: '100%' }}>
-          <Input
-            type="text"
-            placeholder="Escribe aquí tu mensaje"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-          />
-          <SendButton type="submit">Enviar</SendButton>
-        </form>
-      </InputContainer>
+      <MainContent>
+        <ChatContainer>
+          <MessagesContainer>
+            {showPromptOptions && (
+              <PromptOptions>
+                {promptOptions.map((option, index) => (
+                  <PromptOption key={index} onClick={(e) => sendMessage(e, option)}>
+                    {option}
+                  </PromptOption>
+                ))}
+              </PromptOptions>
+            )}
+            {messages.map((msg) => (
+              <Message key={msg.id} user={msg.user}>
+                {msg.text}
+              </Message>
+            ))}
+            <div ref={messagesEndRef} />
+          </MessagesContainer>
+          <InputContainer>
+            <form onSubmit={sendMessage} style={{ display: 'flex', width: '100%' }}>
+              <Input
+                type="text"
+                placeholder="Escribe aquí tu mensaje"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+              />
+              <SendButton type="submit">
+                <FontAwesomeIcon icon={faPaperPlane} />
+              </SendButton>
+            </form>
+          </InputContainer>
+        </ChatContainer>
+        <Divider />
+        <RightColumn>
+          <NewChatButton onClick={startNewChat}>Nuevo Chat</NewChatButton>
+          <SearchHistoryContainer>
+            <SearchHistoryTitle>Historial de Chats</SearchHistoryTitle>
+            {chatHistory[type].slice().reverse().map((chat) => (
+              <SearchItem key={chat.id} onClick={() => selectChat(chat.id)}>
+                {chat.firstMessage}
+              </SearchItem>
+            ))}
+          </SearchHistoryContainer>
+        </RightColumn>
+      </MainContent>
     </PageContainer>
   );
 }

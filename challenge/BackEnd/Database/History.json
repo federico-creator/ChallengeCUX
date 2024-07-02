@@ -1,0 +1,26 @@
+{
+    "clasico": [],
+    "astrologia": [],
+    "romance": [
+      {
+        "id": 1,
+        "messages": [
+          {
+            "user": "user",
+            "text": "hola",
+            "chatType": "romance",
+            "timestamp": "2023-01-01T00:00:00.000Z"
+          },
+          {
+            "user": "Chatbot",
+            "text": "Hola, ¿cómo está el amor hoy?",
+            "chatType": "romance",
+            "timestamp": "2023-01-01T00:00:01.000Z"
+          }
+        ],
+        "firstMessage": "hola"
+      }
+    ],
+    "trabajo": []
+  }
+  
