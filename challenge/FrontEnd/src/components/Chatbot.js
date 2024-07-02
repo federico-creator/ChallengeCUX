@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
@@ -140,7 +140,6 @@ const SearchItem = styled.div`
 
 function Chatbot() {
   const { type } = useParams();
-  const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
   const [chatHistory, setChatHistory] = useState({
@@ -164,12 +163,18 @@ function Chatbot() {
     const fetchChatHistory = async () => {
       try {
         const response = await axios.get(`http://localhost:5000/chatbot/history/${type}`);
-        if (response.data && Array.isArray(response.data)) {
+        if (response.data) {
           const validMessages = response.data.flatMap(chat => chat.messages || []);
           setMessages(validMessages);
+          setShowPromptOptions(false);
         }
-        console.log('Chat history fetched:', response.data); // Debug log
-        setShowPromptOptions(true); // Mostrar prompts para un nuevo chat
+        console.log('Chat history fetched:', response.data.length); 
+        if (response.data.length == 0) {
+          setShowPromptOptions(true);
+        }
+        else{
+          setShowPromptOptions(false);
+        }
       } catch (error) {
         console.error('Error fetching chat history:', error);
       }
@@ -200,11 +205,11 @@ function Chatbot() {
       setShowPromptOptions(false);
 
       try {
-        console.log('Sending message:', messageText); // Debug log
+        console.log('Sending message:', messageText);
         const response = await axios.post(`http://localhost:5000/chatbot/${type}`, {
           userInput: messageText
         });
-        console.log('Chatbot response:', response.data); // Debug log
+        console.log('Chatbot response:', response.data); 
         const botMessage = {
           id: messages.length + 2,
           text: response.data.chatbotResponse,
@@ -236,8 +241,7 @@ function Chatbot() {
     setShowPromptOptions(true);
   };
 
-  const handleNavigate = (newType) => {
-    // Guardar el chat actual en el historial antes de navegar
+  /* const GuardarChatEnCambio = (newType) => {
     const currentChat = [...messages];
     if (currentChat.length > 0) {
       setChatHistory(prevHistory => ({
@@ -255,10 +259,12 @@ function Chatbot() {
     setMessages([]);
     setShowPromptOptions(true);
     navigate(`/chatbot/${newType}`);
-  };
+  }; 
+  No pude resolverlo, tiene que venir como parametro*/
 
   const selectChat = (chatId) => {
     const currentChat = [...messages];
+    console.log(`este es el mesnaje antes del cambio: ${currentChat.length} `);
     if (currentChat.length > 0) {
       setChatHistory(prevHistory => ({
         ...prevHistory,
@@ -280,7 +286,7 @@ function Chatbot() {
         [type]: prevHistory[type].filter(chat => chat.id !== chatId)
       }));
       setMessages(selectedChat.messages);
-      setShowPromptOptions(false); // Ocultar prompts al recuperar el historial
+      setShowPromptOptions(false);
     }
   };
 
@@ -289,6 +295,7 @@ function Chatbot() {
       <MainContent>
         <ChatContainer>
           <MessagesContainer>
+            {Message.length !== 0 ? console.log(`esto tiene el mesnaje ${Message}`) : console.log("La longitud del mensaje es 0")}
             {showPromptOptions && (
               <PromptOptions>
                 {promptOptions.map((option, index) => (
