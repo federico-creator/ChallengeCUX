@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/ChallengeCUX/static/css/main.e6c13ad2.css",
+    "main.js": "/ChallengeCUX/static/js/main.793669fe.js",
+    "index.html": "/ChallengeCUX/index.html",
+    "main.e6c13ad2.css.map": "/ChallengeCUX/static/css/main.e6c13ad2.css.map",
+    "main.793669fe.js.map": "/ChallengeCUX/static/js/main.793669fe.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.793669fe.js"
+  ]
+}
