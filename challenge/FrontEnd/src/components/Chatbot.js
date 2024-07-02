@@ -11,13 +11,14 @@ const PageContainer = styled.div`
   height: 100vh;
   width: 100%;
   overflow: hidden;
-  background-color: #ffd1dc;
+  background: pink;
 `;
 
 const MainContent = styled.div`
   display: flex;
   flex-grow: 1;
   height: calc(100% - 60px);
+  background: pink;
 `;
 
 const ChatContainer = styled.div`
@@ -25,7 +26,6 @@ const ChatContainer = styled.div`
   flex-direction: column;
   width: 70%;
   height: 100%;
-  background-color: #070806;
   position: relative;
 `;
 
@@ -60,6 +60,7 @@ const Message = styled.div`
   max-width: 80%;
   font-size: 18px;
   position: relative;
+  margin-left: 30px
 `;
 
 const InputContainer = styled.div`
@@ -67,7 +68,8 @@ const InputContainer = styled.div`
   align-items: center;
   padding: 10px;
   background: #070806;
-  width: 100%;
+  width: 80%;
+  margin-left: 90px;
   position: absolute;
   bottom: 0;
 `;
@@ -105,6 +107,7 @@ const PromptOption = styled.button`
   border: 1px solid #a0e00d;
   margin-bottom: 10px;
   cursor: pointer;
+  margin-left: 30px
 `;
 
 const NewChatButton = styled.button`
@@ -295,7 +298,6 @@ function Chatbot() {
       <MainContent>
         <ChatContainer>
           <MessagesContainer>
-            {Message.length !== 0 ? console.log(`esto tiene el mesnaje ${Message}`) : console.log("La longitud del mensaje es 0")}
             {showPromptOptions && (
               <PromptOptions>
                 {promptOptions.map((option, index) => (
